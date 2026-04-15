@@ -22,6 +22,11 @@ license = {text = "MIT"}
 dependencies = [
   "typer",
   "rich",
+  "numpy",
+  "pandas",
+  "openmeteo-requests",
+  "requests-cache",
+  "retry-requests",
 ]
 requires-python = ">= 3.12"
 

@@ -1,3 +1,3 @@
 # API Reference
 
-::: cloudy_forecast
+::: cloudy_forecast.forecast
