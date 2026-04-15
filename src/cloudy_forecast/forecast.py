@@ -1,10 +1,12 @@
 """Forecast class for managing weather forecast data and error estimation."""
 
-import numpy as np
+from typing import Any
+
 import openmeteo_requests
 import pandas as pd
 import requests_cache
 from retry_requests import retry
+
 from .utils import store_forecast
 
 
@@ -43,7 +45,7 @@ class Forecast:
     def download(self) -> str:  # type: ignore[no-untyped-def]
         """Download the current forecast for the set location and parameters."""
         # Validate that location and parameters are set
-        if self.latitude is None or self.longitude is None:
+        if self.latitude is None or self.longitude is None or self.city is None:
             raise ValueError("Location not set. Call set_location() first.")
         if not self.parameters:
             raise ValueError("Parameters not set. Call set_parameters() first.")
@@ -81,12 +83,10 @@ class Forecast:
 
         # Convert UTC to local time (Europe/Berlin) and extract only the date component
         # This shifts '22:00 UTC' to '00:00 Local' and removes the time/offset
-        local_dates = utc_dates.tz_convert("Europe/Berlin").date
+        local_dates = utc_dates.tz_convert("Europe/Berlin").to_series().dt.normalize()
 
         # Create base dictionary with formatted local dates
-        daily_data: dict[str, Any] = {
-            "date": local_dates
-        }
+        daily_data: dict[str, Any] = {"date": local_dates.values}
 
         # Loop through requested parameters and extract values by index
         for i, var_name in enumerate(self.parameters):
@@ -94,13 +94,11 @@ class Forecast:
 
         # 4. Store and Return
         self.current_forecast = pd.DataFrame(data=daily_data)
-        
+
         # Ensure self.city is defined in your __init__ or passed here
         store_forecast(city=self.city, data=self.current_forecast)
 
         return "Forecast successfully downloaded and stored."
-
-  
 
     def compute_errors(self) -> str:
         """Compute error estimates based on historical forecast data."""

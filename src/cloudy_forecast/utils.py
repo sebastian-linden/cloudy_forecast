@@ -1,12 +1,12 @@
+import datetime
 import json
+import subprocess
 import sys
 from pathlib import Path
-import pandas as pd
-import datetime
-import os
-import subprocess
-import typer
 from typing import Annotated
+
+import pandas as pd
+import typer
 
 # Define the relative path to your config
 CONFIG_PATH = Path.home() / ".cloudy_forecast.json"
@@ -41,12 +41,12 @@ def load_config() -> dict:
     return config
 
 
-def store_forecast(city: str = None, data: pd.DataFrame = None) -> None:
+def store_forecast(city: str | None = None, data: pd.DataFrame | None = None) -> None:
     """Store raw forecasting data
-    
+
     Args:
         data (pandas.DataFrame): DataFrame containing the forecasting data
-    
+
     Returns:
         None
     """
@@ -65,9 +65,7 @@ def store_forecast(city: str = None, data: pd.DataFrame = None) -> None:
         print("Successfully stored today's forecasting data.")
 
 
-def set_schedule(
-    action: Annotated[str, typer.Argument(help="Either 'activate' or 'deactivate'")]
-) -> None:
+def set_schedule(action: Annotated[str, typer.Argument(help="Either 'activate' or 'deactivate'")]) -> None:
     """Automates the setup or removal of the systemd timer."""
 
     # Constants for paths
@@ -97,7 +95,7 @@ def set_schedule(
     [Install]
     WantedBy=timers.target
     """
-    
+
     if action == "activate":
         # Create directory if it doesn't exist
         SYSTEMD_USER_DIR.mkdir(parents=True, exist_ok=True)
@@ -119,11 +117,11 @@ def set_schedule(
         try:
             subprocess.run(["systemctl", "--user", "stop", TIMER_NAME], check=False)
             subprocess.run(["systemctl", "--user", "disable", TIMER_NAME], check=False)
-            
+
             # Remove files
             (SYSTEMD_USER_DIR / SERVICE_NAME).unlink(missing_ok=True)
             (SYSTEMD_USER_DIR / TIMER_NAME).unlink(missing_ok=True)
-            
+
             subprocess.run(["systemctl", "--user", "daemon-reload"], check=True)
             subprocess.run(["systemctl", "--user", "reset-failed"], check=True)
             print("Timer deactivated and files removed.")

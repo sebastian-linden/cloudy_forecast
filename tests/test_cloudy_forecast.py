@@ -17,7 +17,7 @@ def test_forecast_set_location():
     """Test whether setting the location works."""
     forecast = cloudy_forecast.Forecast()
     # Test set_location
-    forecast.set_location(lat=50, long=6)
+    forecast.set_location("aachen", lat=50, long=6)
     assert forecast.latitude == 50
     assert forecast.longitude == 6
 
@@ -36,7 +36,7 @@ def test_forecast_download():
     forecast = cloudy_forecast.Forecast()
 
     # Must set location and parameters before downloading
-    forecast.set_location(lat=50, long=6)
+    forecast.set_location("aachen", lat=50, long=6)
     forecast.set_parameters(["temperature_2m_max", "temperature_2m_min"])
 
     # Test download
