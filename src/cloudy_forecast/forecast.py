@@ -42,69 +42,6 @@ class Forecast:
         """
         self.parameters = parameters
 
-    # def download(self) -> str:  # type: ignore[no-untyped-def]
-    #     """Download the current forecast for the set location and parameters."""
-    #     # Validate that location and parameters are set
-    #     if self.latitude is None or self.longitude is None or self.city is None:
-    #         raise ValueError("Location not set. Call set_location() first.")
-    #     if not self.parameters:
-    #         raise ValueError("Parameters not set. Call set_parameters() first.")
-
-    #     # 1. Setup API Client
-    #     cache_session = requests_cache.CachedSession(".cache", expire_after=3600)
-    #     retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
-    #     openmeteo = openmeteo_requests.Client(session=retry_session)  # type: ignore
-
-    #     # 2. Prepare API Call
-    #     url = "https://api.open-meteo.com/v1/forecast"
-    #     params = {
-    #         "latitude": self.latitude,
-    #         "longitude": self.longitude,
-    #         "daily": self.parameters,
-    #         "timezone": "auto",  # Aligns daily buckets to local midnight
-    #     }
-
-    #     try:
-    #         responses = openmeteo.weather_api(url, params=params)
-    #         response = responses[0]
-    #     except Exception as e:
-    #         return f"Error fetching forecast: {e}"
-
-    #     # 3. Dynamic Data Extraction
-    #     daily = response.Daily()
-
-    #     # Generate UTC date range from the API response
-    #     utc_dates = pd.date_range(
-    #         start=pd.to_datetime(daily.Time(), unit="s", utc=True),  # type: ignore
-    #         end=pd.to_datetime(daily.TimeEnd(), unit="s", utc=True),  # type: ignore
-    #         freq=pd.Timedelta(seconds=daily.Interval()),  # type: ignore
-    #         inclusive="left",
-    #     )
-
-    #     # Convert UTC to local time (Europe/Berlin) and extract only the date component
-    #     # This shifts '22:00 UTC' to '00:00 Local' and removes the time/offset
-    #     # local_dates = utc_dates.tz_convert("Europe/Berlin").to_series().dt.normalize()
-
-    #     # # Create base dictionary with formatted local dates
-    #     # daily_data: dict[str, Any] = {"date": local_dates.values}
-
-    #     local_date_strings = utc_dates.tz_convert("Europe/Berlin").normalize().strftime("%Y-%m-%d")
-
-    #     # Create base dictionary using the formatted strings
-    #     daily_data: dict[str, Any] = {"date": local_date_strings}
-
-    #     # Loop through requested parameters and extract values by index
-    #     for i, var_name in enumerate(self.parameters):
-    #         daily_data[var_name] = daily.Variables(i).ValuesAsNumpy()  # type: ignore
-
-    #     # 4. Store and Return
-    #     self.current_forecast = pd.DataFrame(data=daily_data)
-
-    #     # Ensure self.city is defined in your __init__ or passed here
-    #     store_forecast(city=self.city, data=self.current_forecast)
-
-    #     return "Forecast successfully downloaded and stored."
-
     def download(self) -> str:  # type: ignore[no-untyped-def]
         """Download the current forecast for the set location and parameters."""
         # Validate that location, parameters, and city are set
