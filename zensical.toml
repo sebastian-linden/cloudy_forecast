@@ -1,0 +1,27 @@
+[project]
+site_name = "Cloud Forecast"
+site_url = "https://sebastian-linden.github.io/cloud_forecast/"
+repo_url = "https://github.com/sebastian-linden/cloud_forecast"
+repo_name = "sebastian-linden/cloud_forecast"
+
+nav = [
+  { "Home" = "index.md" },
+  { "Installation" = "installation.md" },
+  { "Usage" = "usage.md" },
+  { "API Reference" = "api.md" },
+]
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+toggle.icon = "material/brightness-7"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+toggle.icon = "material/brightness-4"
+toggle.name = "Switch to light mode"
+
+[project.plugins.mkdocstrings.handlers.python]
+paths = ["src"]
