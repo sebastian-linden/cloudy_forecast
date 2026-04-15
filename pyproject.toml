@@ -27,6 +27,7 @@ dependencies = [
   "openmeteo-requests",
   "requests-cache",
   "retry-requests",
+  "datetime",
 ]
 requires-python = ">= 3.12"
 
@@ -62,8 +63,8 @@ cloudy_forecast = "cloudy_forecast.cli:app"
 
 [tool.ty]
 # All rules are enabled as "error" by default; no need to specify unless overriding.
-# Example override: relax a rule for the entire project (uncomment if needed).
-# rules.TY015 = "warn"  # For invalid-argument-type, warn instead of error.
+# Third-party library type stubs are incomplete for openmeteo_requests
+# Using type: ignore comments to suppress specific issues
 
 [tool.ruff]
 line-length = 120
