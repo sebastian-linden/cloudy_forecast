@@ -5,7 +5,7 @@
 A Python tool that tracks 14-day weather forecasts from the Open-Meteo API to see how they hold up over time. By comparing early predictions to the actual weather, it calculates the "real" uncertainty of a forecast. It’s built for hikers and outdoor enthusiasts who want to know if that 18°C Saturday is a sure thing or just a hopeful guess.
 
 * [GitHub](https://github.com/sebastian-linden/cloud_forecast/) | [PyPI](https://pypi.org/project/cloud_forecast/) | [Documentation](https://sebastian-linden.github.io/cloud_forecast/)
-* Created by [Sebastian B. Linden](https://audrey.feldroy.com/) | GitHub [@sebastian-linden](https://github.com/sebastian-linden) | PyPI [@sebastian-linden](https://pypi.org/user/sebastian-linden/)
+* Created by [Sebastian B. Linden] | GitHub [@sebastian-linden](https://github.com/sebastian-linden) | PyPI [@sebastian-linden](https://pypi.org/user/sebastian-linden/)
 * MIT License
 
 ## Features
