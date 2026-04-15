@@ -9,8 +9,8 @@ import pandas as pd
 import typer
 
 # Define the relative path to your config
-CONFIG_PATH = Path.home() / ".cloudy_forecast.json"
-RAW_DATA_PATH = "data/raw/"
+CONFIG_PATH = Path("data/user/.cloudy_forecast_config.json")
+RAW_DATA_PATH = Path("data/raw/")
 
 
 def load_config() -> dict:
@@ -60,7 +60,7 @@ def store_forecast(city: str | None = None, data: pd.DataFrame | None = None) ->
         # check today's date
         today = datetime.date.today()
         today_str = today.strftime("%Y%m%d")
-        file_name = f"{today_str}_{city}.csv"
+        file_name = f"{city}_{today_str}.csv"
         data.to_csv(f"{RAW_DATA_PATH}/{file_name}", index=False)
         print("Successfully stored today's forecasting data.")
 

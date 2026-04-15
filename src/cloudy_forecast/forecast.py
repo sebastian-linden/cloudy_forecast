@@ -15,38 +15,41 @@ class Forecast:
 
     def __init__(self) -> None:
         """Initialize a new Forecast instance."""
-        self.city: str | None = None
-        self.latitude: float | None = None
-        self.longitude: float | None = None
+        self.city: str | list[str] | None = None
+        self.latitude: float | list[float] | None = None
+        self.longitude: float | list[float] | None = None
         self.parameters: list[str] = []
         self.current_forecast: pd.DataFrame | None = None
-        self.historical_data: list[pd.DataFrame] = []  # Store past forecasts
 
-    def set_location(self, city: str, lat: float, long: float) -> None:
-        """Set the location for the forecast.
-
-        Args:
-            city: Name of the location.
-            lat: Latitude of the location.
-            long: Longitude of the location.
-        """
+    def set_location(self, city: str | list[str], lat: float | list[float], lon: float | list[float]) -> None:
+        """Set the location(s) for the forecast."""
         self.city = city
         self.latitude = lat
-        self.longitude = long
+        self.longitude = lon
 
-    def set_parameters(self, parameters: list[str]) -> None:
-        """Set the weather parameters to forecast.
+    def set_metrics(self, metrics: list[str]) -> None:
+        """Set the weather metrics to forecast.
 
         Args:
-            parameters: List of parameter names (e.g., ["temperature_2m_max", "temperature_2m_min"]).
+            metrics: List of parameter names (e.g., ["temperature_2m_max", "temperature_2m_min"]).
         """
-        self.parameters = parameters
+        self.parameters = metrics
 
     def download(self) -> str:  # type: ignore[no-untyped-def]
-        """Download the current forecast for the set location and parameters."""
-        # Validate that location, parameters, and city are set
-        if self.latitude is None or self.longitude is None or self.city is None:
-            raise ValueError("Location or city not set. Call set_location() first.")
+        """Download the current forecast for multiple locations and parameters."""
+        # Validate that location, parameters, and city are set and are lists
+        if not all([self.latitude, self.longitude, self.city]):
+            raise ValueError("Locations or cities not set. Call set_location() first.")
+        print(f"Type of latitude: {type(self.latitude)}")
+        print(f"Type of longitude: {type(self.longitude)}")
+        print(f"Type of city: {type(self.city)}")
+        if (
+            not isinstance(self.latitude, list)
+            or not isinstance(self.longitude, list)
+            or not isinstance(self.city, list)
+        ):
+            raise ValueError("Latitude, longitude, and city must be provided as lists for batch processing.")
+
         if not self.parameters:
             raise ValueError("Parameters not set. Call set_parameters() first.")
 
@@ -61,48 +64,49 @@ class Forecast:
             "latitude": self.latitude,
             "longitude": self.longitude,
             "daily": self.parameters,
-            "timezone": "auto",  # Aligns daily buckets to local midnight
+            "timezone": "auto",
         }
 
         try:
+            # responses will contain one object per coordinate pair
             responses = openmeteo.weather_api(url, params=params)
-            response = responses[0]
         except Exception as e:
             return f"Error fetching forecast: {e}"
 
-        # 3. Dynamic Data Extraction
-        daily = response.Daily()
+        # 3. Dynamic Data Extraction per Response
+        for index, response in enumerate(responses):
+            current_city = self.city[index]
+            daily = response.Daily()
 
-        # Get the UTC offset provided by the API for the current location
-        offset_seconds = response.UtcOffsetSeconds()
-        offset_delta = pd.Timedelta(seconds=offset_seconds)
+            # Get the UTC offset provided by the API for the specific location
+            offset_seconds = response.UtcOffsetSeconds()
+            offset_delta = pd.Timedelta(seconds=offset_seconds)
 
-        # Generate the UTC date range
-        utc_dates = pd.date_range(
-            start=pd.to_datetime(daily.Time(), unit="s", utc=True),  # type: ignore
-            end=pd.to_datetime(daily.TimeEnd(), unit="s", utc=True),  # type: ignore
-            freq=pd.Timedelta(seconds=daily.Interval()),  # type: ignore
-            inclusive="left",
-        )
+            # Generate the UTC date range
+            utc_dates = pd.date_range(
+                start=pd.to_datetime(daily.Time(), unit="s", utc=True),  # type: ignore
+                end=pd.to_datetime(daily.TimeEnd(), unit="s", utc=True),  # type: ignore
+                freq=pd.Timedelta(seconds=daily.Interval()),  # type: ignore
+                inclusive="left",
+            )
 
-        # Shift dates by the offset and format as strings to prevent UTC reversion in CSV
-        # This resolves the "22:00 UTC" issue and satisfies static analysis
-        local_date_strings = (utc_dates + offset_delta).strftime("%Y-%m-%d")
+            # Shift dates and format
+            local_date_strings = (utc_dates + offset_delta).strftime("%Y-%m-%d")
 
-        # Create base dictionary using the formatted strings
-        daily_data: dict[str, Any] = {"date": local_date_strings}
+            # Create base dictionary
+            daily_data: dict[str, Any] = {"date": local_date_strings}
 
-        # Loop through requested parameters and extract values by index
-        for i, var_name in enumerate(self.parameters):
-            daily_data[var_name] = daily.Variables(i).ValuesAsNumpy()  # type: ignore
+            # Extract values by index
+            for i, var_name in enumerate(self.parameters):
+                daily_data[var_name] = daily.Variables(i).ValuesAsNumpy()  # type: ignore
 
-        # 4. Store and Return
-        self.current_forecast = pd.DataFrame(data=daily_data)
+            # 4. Store individually
+            forecast_df = pd.DataFrame(data=daily_data)
 
-        # self.city is guaranteed to be a string here due to the check at the top
-        store_forecast(city=self.city, data=self.current_forecast)
+            # Store the current city's forecast
+            store_forecast(city=current_city, data=forecast_df)
 
-        return "Forecast successfully downloaded and stored."
+        return f"Forecast for {len(responses)} cities successfully downloaded and stored."
 
     def compute_errors(self) -> str:
         """Compute error estimates based on historical forecast data."""
