@@ -79,17 +79,18 @@ def set_schedule(action: Annotated[str, typer.Argument(help="Either 'activate' o
     [Service]
     Type=oneshot
     WorkingDirectory={Path.cwd()}
-    ExecStart={Path.home()}/.local/bin/uv run cloudy_forecast download
+    Environment=PATH=/snap/bin:$PATH
+    ExecStart=/snap/bin/uv run cloudy_forecast download
 
     [Install]
     WantedBy=default.target
     """
 
     TIMER_CONTENT = """[Unit]
-    Description=Run cloudy_forecast download daily at 8am
+    Description=Run cloudy_forecast download daily at 9am
 
     [Timer]
-    OnCalendar=*-*-* 08:00:00
+    OnCalendar=*-*-* 09:00:00
     Persistent=true
 
     [Install]
@@ -108,7 +109,7 @@ def set_schedule(action: Annotated[str, typer.Argument(help="Either 'activate' o
         try:
             subprocess.run(["systemctl", "--user", "daemon-reload"], check=True)
             subprocess.run(["systemctl", "--user", "enable", "--now", TIMER_NAME], check=True)
-            print("Timer activated successfully for 08:00 AM daily.")
+            print("Timer activated successfully for 09:00 AM daily.")
         except subprocess.CalledProcessError as e:
             print(f"Failed to activate timer: {e}")
 
